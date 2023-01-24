@@ -55,7 +55,7 @@ npm install -g inherits n
 /usr/local/bin/n $NODE_JS_VERSION
 
 echo "* Setup yarn"
-corepack enable || true
+# corepack enable || true
 yarn set version stable
 
 echo "* Fix redis for lx-branch"
@@ -80,8 +80,8 @@ cd /var/www/peertube
 mkdir config storage versions
 chmod 750 config/
 cd /var/www/peertube/versions
-wget -q "https://github.com/Chocobozzz/PeerTube/releases/download/${PEERTUBE_VERSION}/peertube-${PEERTUBE_VERSION}.zip"
-unzip -q peertube-${PEERTUBE_VERSION}.zip
+wget "https://github.com/Chocobozzz/PeerTube/releases/download/${PEERTUBE_VERSION}/peertube-${PEERTUBE_VERSION}.zip"
+unzip peertube-${PEERTUBE_VERSION}.zip
 rm peertube-${PEERTUBE_VERSION}.zip
 cd /var/www/peertube
 ln -s versions/peertube-${PEERTUBE_VERSION} ./current
