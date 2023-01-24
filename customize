@@ -9,7 +9,7 @@ export LANGUAGE=en_US.utf8
 export LANG=en_US.utf8
 
 PEERTUBE_VERSION="5.0.1"
-NODE_JS_VERSION="14.18.3"
+NODE_JS_VERSION="14.18.20"
 
 PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
 
