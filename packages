@@ -6,8 +6,6 @@ unzip
 nginx
 apache2-utils
 ffmpeg
-postgresql
-postgresql-contrib
 openssl
 g++
 make
