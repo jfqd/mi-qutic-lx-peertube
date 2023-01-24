@@ -63,6 +63,10 @@ sed -i -e "s|PIDFile=|#PIDFile=|" /lib/systemd/system/postgresql@.service
 systemctl daemon-reload
 
 echo "* Start and setup postgresql"
+sed -i 's/local   all             all                                     password/local   all             all                                     peer/' \
+  /etc/postgresql/15/main/pg_hba.conf
+sed -i "s/#listen_addresses = 'localhost'/listen_addresses = 'localhost'/" \
+  /etc/postgresql/15/main/postgresql.conf
 pg_createcluster 15 main --start || true
 sudo -u postgres createuser -P peertube
 sudo -u postgres createdb -O peertube -E UTF8 -T template0 peertube_prod
@@ -74,6 +78,7 @@ addgroup peertube
 mkdir -p /var/www/peertube
 adduser --disabled-password --system --quiet --home /var/www/peertube --shell /usr/bin/bash peertube
 adduser peertube peertube
+chown -R peertube:peertube /var/www/peertube
 
 echo "* Setup peertube"
 cd /var/www/peertube
