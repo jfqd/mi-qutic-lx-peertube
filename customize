@@ -68,7 +68,7 @@ sed -i 's/local   all             all                                     passwo
 sed -i "s/#listen_addresses = 'localhost'/listen_addresses = 'localhost'/" \
   /etc/postgresql/15/main/postgresql.conf
 pg_createcluster 15 main --start || true
-sudo -u postgres createuser -P peertube
+sudo -u postgres psql -c "CREATE USER peertube;" || true
 sudo -u postgres createdb -O peertube -E UTF8 -T template0 peertube_prod
 sudo -u postgres psql -c "CREATE EXTENSION pg_trgm;" peertube_prod
 sudo -u postgres psql -c "CREATE EXTENSION unaccent;" peertube_prod
