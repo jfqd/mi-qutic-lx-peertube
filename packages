@@ -16,3 +16,4 @@ wget
 sudo
 unzip
 gpg
+htop

@@ -31,9 +31,11 @@ cp /usr/local/var/tmp/nginx.conf /etc/nginx/nginx.conf
 ln -s /etc/nginx/sites-available/peertube /etc/nginx/sites-enabled/peertube
 systemctl daemon-reload
 
-echo "* Setup apt-requirements"
+echo "* Add postgresql repository to apt sources"
 wget -O /usr/share/keyrings/postgresql.asc https://www.postgresql.org/media/keys/ACCC4CF8.asc
 echo "deb [signed-by=/usr/share/keyrings/postgresql.asc] http://apt.postgresql.org/pub/repos/apt $(lsb_release -cs)-pgdg main" > /etc/apt/sources.list.d/postgresql.list
+
+echo "* Add yarn repository to apt sources"
 curl -sL https://dl.yarnpkg.com/debian/pubkey.gpg | gpg --dearmor | sudo tee /usr/share/keyrings/yarnkey.gpg >/dev/null
 echo "deb [signed-by=/usr/share/keyrings/yarnkey.gpg] https://dl.yarnpkg.com/debian stable main" | sudo tee /etc/apt/sources.list.d/yarn.list
 
@@ -80,12 +82,12 @@ cd /var/www/peertube
 mkdir config storage versions
 chmod 750 config/
 cd /var/www/peertube/versions
-wget "https://github.com/Chocobozzz/PeerTube/releases/download/v${PEERTUBE_VERSION}/peertube-v${PEERTUBE_VERSION}.zip"
-unzip peertube-v${PEERTUBE_VERSION}.zip
+wget -q "https://github.com/Chocobozzz/PeerTube/releases/download/v${PEERTUBE_VERSION}/peertube-v${PEERTUBE_VERSION}.zip"
+unzip -q peertube-v${PEERTUBE_VERSION}.zip
 rm peertube-v${PEERTUBE_VERSION}.zip
 cd /var/www/peertube
 ln -s versions/peertube-v${PEERTUBE_VERSION} ./current
-( cd ./current && yarn install --production --pure-lockfile )
+( cd ./current && yarn install --production )
 mv /usr/local/var/tmp/default.yaml /var/www/peertube/config/default.yaml
 mv /usr/local/var/tmp/production.yaml /var/www/peertube/config/production.yaml
 chown -R peertube:peertube /var/www/peertube
