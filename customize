@@ -70,9 +70,9 @@ systemctl daemon-reload
 
 echo "* Create peertube user and group"
 addgroup peertube
-mkdir -p /var/www/peertube
 adduser --disabled-password --system --quiet --home /var/www/peertube --shell /usr/bin/bash peertube
 adduser peertube peertube
+mkdir -p /var/www/peertube
 chown -R peertube:peertube /var/www/peertube
 
 echo "* Setup peertube"
