@@ -1,0 +1,8 @@
+name="qutic-lx-peertube"
+organization="qutic development"
+brand="Instance"
+version="5.0.1"
+description="qutic peertube 5.0.1 image"
+homepage="https://github.com/jfqd/mi-qutic-lx-peertube"
+users="root admin"
+base="cb020ee4-a9bb-11ec-b16c-1b18c2e32e2e"

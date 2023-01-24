@@ -1,0 +1,127 @@
+#!/usr/bin/bash
+
+set -o errexit
+
+locale-gen en_US.utf8
+
+export LC_ALL=en_US.utf8
+export LANGUAGE=en_US.utf8
+export LANG=en_US.utf8
+
+PEERTUBE_VERSION="5.0.1"
+NODE_JS_VERSION="14.18.3"
+
+PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+
+echo "* Remove apt-get workaround"
+rm /usr/local/bin/apt-get || true
+
+echo "* Get latest"
+export DEBIAN_FRONTEND=noninteractive
+apt-get update
+yes no | apt-get -y upgrade
+apt-get -y dist-upgrade
+
+echo "* Setup nginx"
+mkdir -p /etc/nginx/ssl
+chmod 0500 /etc/nginx/ssl
+/usr/local/bin/ssl-selfsigned.sh -d /etc/nginx/ssl -f nginx
+mv /usr/local/var/tmp/nginx_service /usr/lib/systemd/system/nginx.service
+systemctl daemon-reload
+
+echo "* Setup apt-requirements"
+wget -O /usr/share/keyrings/postgresql.asc https://www.postgresql.org/media/keys/ACCC4CF8.asc
+echo "deb [signed-by=/usr/share/keyrings/postgresql.asc] http://apt.postgresql.org/pub/repos/apt $(lsb_release -cs)-pgdg main" > /etc/apt/sources.list.d/postgresql.list
+curl -sL https://dl.yarnpkg.com/debian/pubkey.gpg | gpg --dearmor | sudo tee /usr/share/keyrings/yarnkey.gpg >/dev/null
+echo "deb [signed-by=/usr/share/keyrings/yarnkey.gpg] https://dl.yarnpkg.com/debian stable main" | sudo tee /etc/apt/sources.list.d/yarn.list
+
+echo "* Install requirements"
+apt-get update
+apt-get install -y \
+  postgresql postgresql-contrib \
+  yarn
+
+echo "* Setup node"
+apt-get -y install npm
+npm install -g inherits n
+/usr/local/bin/n $NODE_JS_VERSION
+
+echo "* Setup yarn"
+corepack enable || true
+yarn set version stable
+
+echo "* Fix redis for lx-branch"
+sed -i -e "s|PIDFile=|#PIDFile=|" /lib/systemd/system/redis-server.service
+systemctl daemon-reload
+systemctl start redis  || true
+systemctl enable redis || true
+
+echo "* Fix postgresql for lx-branch"
+sed -i -e "s|PIDFile=|#PIDFile=|" /lib/systemd/system/postgresql@.service
+systemctl daemon-reload
+
+echo "* Start and setup postgresql"
+pg_createcluster 15 main --start || true
+sudo -u postgres createuser -P peertube
+sudo -u postgres createdb -O peertube -E UTF8 -T template0 peertube_prod
+sudo -u postgres psql -c "CREATE EXTENSION pg_trgm;" peertube_prod
+sudo -u postgres psql -c "CREATE EXTENSION unaccent;" peertube_prod
+
+echo "* Create peertube user and group"
+addgroup peertube
+mkdir -p /var/www/peertube
+adduser --disabled-password --system --quiet --home /var/www/peertube --shell /usr/bin/bash peertube
+adduser peertube peertube
+
+echo "* Setup peertube"
+cd /var/www/peertube
+mkdir config storage versions
+chmod 750 config/
+cd /var/www/peertube/versions
+wget -q "https://github.com/Chocobozzz/PeerTube/releases/download/${PEERTUBE_VERSION}/peertube-${PEERTUBE_VERSION}.zip"
+unzip -q peertube-${PEERTUBE_VERSION}.zip
+rm peertube-${PEERTUBE_VERSION}.zip
+chown -R peertube:peertube /var/www/peertube
+cd /var/www/peertube
+sudo -u peertube ln -s versions/peertube-${PEERTUBE_VERSION} ./current
+cd ./current && sudo -H -u peertube yarn install --production --pure-lockfile
+cd /var/www/peertube
+cp ./current/config/default.yaml ./config/default.yaml
+cp ./current/config/production.yaml.example ./config/production.yaml
+chown -R peertube:peertube /var/www/peertube
+
+cp /var/www/peertube/current/support/nginx/peertube /etc/nginx/sites-available/peertube
+ln -s /etc/nginx/sites-available/peertube /etc/nginx/sites-enabled/peertube
+
+cp /var/www/peertube/peertube-latest/support/systemd/peertube.service /etc/systemd/system/
+
+echo "* Install systemd files"
+cp /var/www/peertube/current/support/systemd/peertube.service /etc/systemd/system/
+systemctl daemon-reload
+systemctl enable peertube
+systemctl start peertube
+
+echo "* Disable ssh"
+systemctl stop ssh
+systemctl disable ssh
+
+echo "* Create bash-history"
+cat >> /root/.bash_history << EOF
+systemctl edit --full peertube
+systemctl daemon-reload
+systemctl reset-failed peertube
+systemctl stop peertube
+systemctl start peertube
+systemctl reload nginx
+journalctl --since $(date '+%Y-%m-%d')
+EOF
+
+echo "* Ensure bootstrap will run next time"
+rm -rf /var/lib/bootstrap
+
+echo "* Cleaning up."
+rm -rf /usr/local/var/tmp/*
+rm /var/log/syslog || true
+touch /var/log/syslog || true
+rm /root/customize
+history -c
