@@ -56,11 +56,6 @@ apt-get -y install npm
 npm install -g inherits n
 /usr/local/bin/n $NODE_JS_VERSION
 
-echo "* Setup yarn"
-# corepack enable || true
-yarn set version stable
-apt-get -y remove cmdtest
-
 echo "* Fix redis for lx-branch"
 sed -i -e "s|PIDFile=|#PIDFile=|" /etc/systemd/system/redis.service|| true
 systemctl daemon-reload
