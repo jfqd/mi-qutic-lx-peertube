@@ -24,6 +24,9 @@
     "zabbix_pski":           {"type": "text", "description": "zabbix PSKIdentity"},
     "zabbix_psk":            {"type": "text", "description": "zabbix PSK"},
     "logstash_redis":        {"type": "text", "description": "ip addresses of the logstash redis nodes, seperated by comma and including redis-protocoll"},
-    "vfstab":                {"type": "text", "description": "nfs mountpoint for vfstab-file"}
+    "vfstab":                {"type": "text", "description": "nfs mountpoint for vfstab-file"},
+    "peertube_domain":       {"type": "text", "description": "peertube domain"},
+    "admin_email":           {"type": "text", "description": "email address of peertube admin"},
+    "from_email":            {"type": "text", "description": "peertube email send from"}
   }
 }

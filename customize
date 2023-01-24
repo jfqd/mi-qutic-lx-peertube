@@ -27,6 +27,8 @@ mkdir -p /etc/nginx/ssl
 chmod 0500 /etc/nginx/ssl
 /usr/local/bin/ssl-selfsigned.sh -d /etc/nginx/ssl -f nginx
 mv /usr/local/var/tmp/nginx_service /usr/lib/systemd/system/nginx.service
+cp /usr/local/var/tmp/nginx.conf /etc/nginx/nginx.conf
+ln -s /etc/nginx/sites-available/peertube /etc/nginx/sites-enabled/peertube
 systemctl daemon-reload
 
 echo "* Setup apt-requirements"
@@ -81,25 +83,16 @@ cd /var/www/peertube/versions
 wget -q "https://github.com/Chocobozzz/PeerTube/releases/download/${PEERTUBE_VERSION}/peertube-${PEERTUBE_VERSION}.zip"
 unzip -q peertube-${PEERTUBE_VERSION}.zip
 rm peertube-${PEERTUBE_VERSION}.zip
-chown -R peertube:peertube /var/www/peertube
 cd /var/www/peertube
-sudo -u peertube ln -s versions/peertube-${PEERTUBE_VERSION} ./current
-cd ./current && sudo -H -u peertube yarn install --production --pure-lockfile
-cd /var/www/peertube
-cp ./current/config/default.yaml ./config/default.yaml
-cp ./current/config/production.yaml.example ./config/production.yaml
+ln -s versions/peertube-${PEERTUBE_VERSION} ./current
+( cd ./current && yarn install --production --pure-lockfile )
+mv /usr/local/var/tmp/default.yaml /var/www/peertube/config/default.yaml
+mv /usr/local/var/tmp/production.yaml /var/www/peertube/config/production.yaml
 chown -R peertube:peertube /var/www/peertube
 
-cp /var/www/peertube/current/support/nginx/peertube /etc/nginx/sites-available/peertube
-ln -s /etc/nginx/sites-available/peertube /etc/nginx/sites-enabled/peertube
-
-cp /var/www/peertube/peertube-latest/support/systemd/peertube.service /etc/systemd/system/
-
-echo "* Install systemd files"
-cp /var/www/peertube/current/support/systemd/peertube.service /etc/systemd/system/
+echo "* Install systemd file"
+mv /usr/local/var/tmp/peertube_service /etc/systemd/system/
 systemctl daemon-reload
-systemctl enable peertube
-systemctl start peertube
 
 echo "* Disable ssh"
 systemctl stop ssh
