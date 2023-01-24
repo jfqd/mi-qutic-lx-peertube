@@ -1,5 +1,13 @@
 #!/usr/bin/bash
 
+cho "* Start postgresql"
+systemctl daemon-reload
+pg_createcluster 15 main --start || true
+sudo -u postgres psql -c "CREATE USER peertube;" || true
+sudo -u postgres createdb -O peertube -E UTF8 -T template0 peertube_prod
+sudo -u postgres psql -c "CREATE EXTENSION pg_trgm;" peertube_prod
+sudo -u postgres psql -c "CREATE EXTENSION unaccent;" peertube_prod
+
 MAIL_UID=$(/native/usr/sbin/mdata-get mail_auth_user)
 MAIL_PWD=$(/native/usr/sbin/mdata-get mail_auth_pass)
 MAIL_HOST=$(/native/usr/sbin/mdata-get mail_smarthost)

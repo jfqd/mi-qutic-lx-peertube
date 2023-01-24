@@ -43,6 +43,12 @@ apt-get install -y \
   postgresql postgresql-contrib \
   yarn
 
+echo "* Setup postgresql"
+sed -i 's/local   all             all                                     password/local   all             all                                     peer/' \
+  /etc/postgresql/15/main/pg_hba.conf
+sed -i "s/#listen_addresses = 'localhost'/listen_addresses = 'localhost'/" \
+  /etc/postgresql/15/main/postgresql.conf
+
 echo "* Setup node"
 apt-get -y install npm
 npm install -g inherits n
@@ -61,17 +67,6 @@ systemctl enable redis || true
 echo "* Fix postgresql for lx-branch"
 sed -i -e "s|PIDFile=|#PIDFile=|" /lib/systemd/system/postgresql@.service
 systemctl daemon-reload
-
-echo "* Start and setup postgresql"
-sed -i 's/local   all             all                                     password/local   all             all                                     peer/' \
-  /etc/postgresql/15/main/pg_hba.conf
-sed -i "s/#listen_addresses = 'localhost'/listen_addresses = 'localhost'/" \
-  /etc/postgresql/15/main/postgresql.conf
-pg_createcluster 15 main --start || true
-sudo -u postgres psql -c "CREATE USER peertube;" || true
-sudo -u postgres createdb -O peertube -E UTF8 -T template0 peertube_prod
-sudo -u postgres psql -c "CREATE EXTENSION pg_trgm;" peertube_prod
-sudo -u postgres psql -c "CREATE EXTENSION unaccent;" peertube_prod
 
 echo "* Create peertube user and group"
 addgroup peertube
