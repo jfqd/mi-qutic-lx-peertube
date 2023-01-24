@@ -59,6 +59,7 @@ npm install -g inherits n
 echo "* Setup yarn"
 # corepack enable || true
 yarn set version stable
+apt-get -y remove cmdtest
 
 echo "* Fix redis for lx-branch"
 sed -i -e "s|PIDFile=|#PIDFile=|" /etc/systemd/system/redis.service|| true
