@@ -80,11 +80,11 @@ cd /var/www/peertube
 mkdir config storage versions
 chmod 750 config/
 cd /var/www/peertube/versions
-wget "https://github.com/Chocobozzz/PeerTube/releases/download/${PEERTUBE_VERSION}/peertube-${PEERTUBE_VERSION}.zip"
-unzip peertube-${PEERTUBE_VERSION}.zip
-rm peertube-${PEERTUBE_VERSION}.zip
+wget "https://github.com/Chocobozzz/PeerTube/releases/download/v${PEERTUBE_VERSION}/peertube-v${PEERTUBE_VERSION}.zip"
+unzip peertube-v${PEERTUBE_VERSION}.zip
+rm peertube-v${PEERTUBE_VERSION}.zip
 cd /var/www/peertube
-ln -s versions/peertube-${PEERTUBE_VERSION} ./current
+ln -s versions/peertube-v${PEERTUBE_VERSION} ./current
 ( cd ./current && yarn install --production --pure-lockfile )
 mv /usr/local/var/tmp/default.yaml /var/www/peertube/config/default.yaml
 mv /usr/local/var/tmp/production.yaml /var/www/peertube/config/production.yaml
